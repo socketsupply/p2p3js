@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        connect-src https: file: ipc: socket: ws://localhost:*;
+        script-src https: socket: http://localhost:* 'unsafe-eval';
+        img-src https: data: file: http://localhost:*;
+        child-src 'none';
+        object-src 'none';
+      "
+    >
+    <style type="text/css">
+      html, body {
+        height: 100%;
+      }
+      body {
+        display: grid;
+        justify-content: center;
+        align-content: center;
+        font-family: helvetica;
+      }
+    </style>
+    <link rel="stylesheet" href="index.css">
+    <script type="module" src="./index.js"></script>
+  </head>
+  <body>
+    <div id="canvas-container"></div>
+  </body>
+</html>
