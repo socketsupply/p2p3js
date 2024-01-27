@@ -7,42 +7,42 @@ import * as THREE from './three.module.js'
 import { OrbitControls } from './orbit.js'
 
 const pantonePalette = [
-    0xE74C3C, 
-    0x3498DB,
-    0x2ECC71,
-    0xF39C12,
-    0x9B59B6,
-    0x1ABC9C,
-    0xD35400,
-    0x2980B9,
-    0xC0392B,
-    0x16A085,
-    0xF1C40F,
-    0x8E44AD,
-    0x2C3E50,
-    0xE67E22,
-    0x27AE60,
-    0xD35400,
-    0x3498DB,
-    0x9B59B6,
-    0xF39C12,
-    0x16A085,
-    0xC0392B,
-    0x1ABC9C,
-    0xE74C3C,
-    0x2980B9,
-    0x2ECC71,
-    0xF1C40F,
-    0x8E44AD,
-    0x3498DB,
-    0xC0392B,
-    0x16A085,
-    0xE67E22
-];
+  0xE74C3C,
+  0x3498DB,
+  0x2ECC71,
+  0xF39C12,
+  0x9B59B6,
+  0x1ABC9C,
+  0xD35400,
+  0x2980B9,
+  0xC0392B,
+  0x16A085,
+  0xF1C40F,
+  0x8E44AD,
+  0x2C3E50,
+  0xE67E22,
+  0x27AE60,
+  0xD35400,
+  0x3498DB,
+  0x9B59B6,
+  0xF39C12,
+  0x16A085,
+  0xC0392B,
+  0x1ABC9C,
+  0xE74C3C,
+  0x2980B9,
+  0x2ECC71,
+  0xF1C40F,
+  0x8E44AD,
+  0x3498DB,
+  0xC0392B,
+  0x16A085,
+  0xE67E22
+]
 
-function getRandomPantoneColor() {
-    const randomIndex = Math.floor(Math.random() * pantonePalette.length);
-    return pantonePalette[randomIndex];
+function getRandomPantoneColor () {
+  const randomIndex = Math.floor(Math.random() * pantonePalette.length)
+  return pantonePalette[randomIndex]
 }
 
 function buildGame (subcluster) {
@@ -59,7 +59,7 @@ function buildGame (subcluster) {
 
   const controls = new OrbitControls(camera, renderer.domElement)
 
-  const grid = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff)
+  const grid = new THREE.GridHelper(10, 10, 0x000000, 0x000000)
   scene.add(grid)
 
   const planeGeometry = new THREE.PlaneGeometry(10, 10, 10, 10)
@@ -107,6 +107,98 @@ function buildGame (subcluster) {
     movePlaceholderVoxel(event)
   })
 
+  // Replace 'mousedown' event with 'pointerdown' event
+  window.addEventListener('pointerdown', (event) => {
+    isMouseDown = true;
+    if (event.shiftKey) {
+      removeVoxel(event);
+    } else {
+      clickTimeout = setTimeout(() => {
+        isMouseDown = false;
+      }, 200);
+    }
+  });
+
+  // Replace 'mouseup' event with 'pointerup' event
+  window.addEventListener('pointerup', (event) => {
+    if (!event.shiftKey && isMouseDown) {
+      clearTimeout(clickTimeout);
+      addVoxel(event, voxelColor);
+    }
+    // Reset placeholder voxel opacity on mouse/touch up
+    placeholderVoxel.material.opacity = 0.5;
+
+    // Position the placeholder voxel based on the intersection with the grid or closest voxel
+    positionPlaceholderVoxel(event);
+  });
+
+  // Replace 'mousemove' event with 'pointermove' event
+  window.addEventListener('pointermove', (event) => {
+    movePlaceholderVoxel(event);
+  });
+
+  // Handle both touch and mouse events for compatibility
+  window.addEventListener('touchstart', (event) => {
+    event.preventDefault();
+    isMouseDown = true;
+    if (event.shiftKey) {
+      removeVoxel(event.changedTouches[0]);
+    } else {
+      clickTimeout = setTimeout(() => {
+        isMouseDown = false;
+      }, 200);
+    }
+  });
+
+  window.addEventListener('touchend', (event) => {
+    event.preventDefault();
+    if (!event.shiftKey && isMouseDown) {
+      clearTimeout(clickTimeout);
+      addVoxel(event.changedTouches[0], voxelColor);
+    }
+    // Reset placeholder voxel opacity on mouse/touch up
+    placeholderVoxel.material.opacity = 0.5;
+
+    // Position the placeholder voxel based on the intersection with the grid or closest voxel
+    positionPlaceholderVoxel(event.changedTouches[0]);
+  });
+
+  window.addEventListener('touchmove', (event) => {
+    event.preventDefault();
+    movePlaceholderVoxel(event.changedTouches[0]);
+  });
+
+  // Function to check if dark mode is enabled
+  function isDarkModeEnabled () {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+
+  // Function to handle mode changes
+  function handleModeChange (e) {
+    if (isDarkModeEnabled()) {
+      grid.material.color.set(0xffffff)
+      renderer.setClearColor(0x000000, 1)
+      grid.material.needsUpdate = true
+    } else {
+      grid.material.color.set(0x000000)
+      renderer.setClearColor(0xffffff, 1)
+    }
+  }
+
+  // Check the initial mode
+  handleModeChange()
+
+  // Watch for changes in the prefers-color-scheme media query
+  if (window.matchMedia) {
+    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+
+    if (darkModeMediaQuery.addEventListener) {
+      darkModeMediaQuery.addEventListener('change', handleModeChange)
+    } else if (darkModeMediaQuery.addListener) {
+      darkModeMediaQuery.addListener(handleModeChange)
+    }
+  }
+
   function addVoxel (event, color = getRandomPantoneColor()) {
     const mouse = new THREE.Vector2()
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1
@@ -152,7 +244,7 @@ function buildGame (subcluster) {
         x: voxel.position.x,
         y: voxel.position.y - 0.5,
         z: voxel.position.z,
-        color: voxelColor 
+        color: voxelColor
       }
 
       for (const peer of subcluster.peers.values()) {
