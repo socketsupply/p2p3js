@@ -55,6 +55,7 @@ function buildGame (subcluster) {
 
   const renderer = new THREE.WebGLRenderer({ antialias: true }) // Enable antialiasing for smoother lines
   renderer.setSize(w, h)
+  document.body.innerHTML = ''
   document.body.appendChild(renderer.domElement)
 
   const controls = new OrbitControls(camera, renderer.domElement)
@@ -63,7 +64,8 @@ function buildGame (subcluster) {
   scene.add(grid)
 
   const planeGeometry = new THREE.PlaneGeometry(10, 10, 10, 10)
-  const planeMaterial = new THREE.MeshBasicMaterial({ color: 0xaaaaaa, wireframe: true })
+
+  const planeMaterial = new THREE.MeshBasicMaterial({ color: 0xaaaaaa, wireframe: true, transparent: true, opacity: 0 })
   const plane = new THREE.Mesh(planeGeometry, planeMaterial)
   plane.rotation.x = -Math.PI / 2
   scene.add(plane)
